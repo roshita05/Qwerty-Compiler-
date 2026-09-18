@@ -1764,41 +1764,6 @@ assertit(aye, "failed");
 
 **User note:** Success deliberately prints nothing and returns void. A false condition stops execution with an AssertionError and the supplied message. Use sayit("Passed"); afterward for a visible success message.
 
-## 9. Verification and maintenance
-
-Read `TEST_REPORT.md` for the exact checks executed in this package and their limitations. The original project's earlier report is preserved as `TEST_REPORT_LOCAL_ORIGINAL.md`; it is not a verification report for this new deployment.
-
-After changing any Python engine code, built-in metadata, reference notes, or guide templates, regenerate the committed hosted assets:
-
-```powershell
-py -3 scripts/build_static.py
-py -3 -m unittest discover -s tests -v
-```
-
-The build script uses Python's standard library only. It regenerates the browser compiler archive, function catalog, Markdown guide, HTML reference, and reference-example data. Vercel deliberately skips a build because these files are already committed. Forgetting to regenerate them would deploy the previous embedded engine.
-
-Before publishing an update, preview `public/` over HTTP, run the live smoke checks in section 5, and then commit the updated `public/` files along with your source. Keep runtime versions pinned; changing the Pyodide URL requires new browser testing. Do not silently replace the browser architecture with an unprotected public Python execution API.
-
-The original CLI is still available:
-
-```powershell
-py -3 -m qwerty run examples/demo.qw
-py -3 -m qwerty check examples/demo.qw
-py -3 -m qwerty compile examples/demo.qw -o demo.qbc
-py -3 -m qwerty run demo.qbc
-```
-
-No general claim of production security, exhaustive language correctness, or cross-browser compatibility is made. See the package's current test report before describing it as tested on a particular platform.
-
-## 10. Official deployment references
-
-Provider guidance was checked on 18 September 2026. Dashboard wording, service limits, and versions can change. These references describe the external platforms; the language behavior is defined by this project's source and tests.
-
-[1] Pyodide usage and deployment: `https://pyodide.org/en/stable/usage/index.html` and `https://pyodide.org/en/stable/usage/downloading-and-deploying.html`.
-
-[2] Pyodide module workers and custom Python packages: `https://pyodide.org/en/stable/usage/webworker.html` and `https://pyodide.org/en/stable/usage/loading-custom-python-code.html`.
-
-[3] Vercel Drop workflow and limitations: `https://vercel.com/docs/drop`.
 
 [4] Vercel Git deployments: `https://vercel.com/docs/git`.
 
