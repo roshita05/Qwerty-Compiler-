@@ -1,0 +1,12 @@
+keep counter = 0;
+whilst counter < 5 {
+    counter = addit(counter, 1);
+    when counter == 2 { skip; }
+    sayit("Counter:", counter);
+    when counter == 4 { stop; }
+}
+keep total = 0;
+each item over [10, 20, 30] {
+    total = addit(total, item);
+}
+sayit("Total:", total);

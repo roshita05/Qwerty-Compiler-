@@ -1,0 +1,4 @@
+# Intentionally fails to demonstrate a source-located runtime diagnostic.
+keep numerator = 10;
+keep denominator = 0;
+sayit(divit(numerator, denominator));
