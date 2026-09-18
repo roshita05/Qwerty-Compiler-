@@ -1,0 +1,4 @@
+keep name = askit("Your name: ");
+keep age = intit(askit("Your age: "));
+sayit(concatit("Hello, ", name, "!"));
+sayit("Next year you will be", addit(age, 1));

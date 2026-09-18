@@ -1,10 +1,4 @@
-# QWERTY Compiler
-
-**User guide**
-
-<img width="944" height="470" alt="image" src="https://github.com/user-attachments/assets/0a79dffb-d3de-49b4-8914-d38c9b699032" />
-<img width="943" height="468" alt="image" src="https://github.com/user-attachments/assets/faaa212e-dee8-411a-bdc6-b41cdf8dcd90" />
-
+# QWERTY Compiler: Vercel Deployment and User Guide
 
 **Edition:** 1.1 browser deployment, with the original v1 Python language engine.  
 **Prepared:** 18 September 2026.  
@@ -19,7 +13,12 @@
 - [2. Start using QWERTY](#2-start-using-qwerty)
 - [3. Language essentials](#3-language-essentials)
 - [4. Working examples](#4-working-examples)
-
+- [5. Deploy this package on Vercel](#5-deploy-this-package-on-vercel)
+- [6. Errors and troubleshooting](#6-errors-and-troubleshooting)
+- [7. Limits, privacy, and supported scope](#7-limits-privacy-and-supported-scope)
+- [8. Complete reference: all 80 built-in functions](#8-complete-reference-all-80-built-in-functions)
+- [9. Verification and maintenance](#9-verification-and-maintenance)
+- [10. Official deployment references](#10-official-deployment-references)
 
 ## 1. What the project does
 
@@ -287,7 +286,152 @@ sayit("Assertion passed");
 
 Output is `Assertion passed`. Without the final `sayit()`, success would produce no output. An assertion failure stops the program; there is no `try`/`catch` syntax in this version.
 
+## 5. Deploy this package on Vercel
 
+**Use `QWERTY_Vercel_Ready.zip`, not the earlier localhost-only ZIP.** It includes a prebuilt `public/` directory and `vercel.json`. No environment variables, API keys, database, dependency installation, or server process are needed for this static deployment.
+
+### Option A: quickest one-time deployment
+
+Vercel documents a Drop workflow for a file, folder, or ZIP, without Git or the CLI. [3]
+
+1. Sign in to Vercel and open `https://vercel.com/drop`.
+2. Extract `QWERTY_Vercel_Ready.zip`, then upload the extracted **`public` folder**. Its top-level file is `index.html`; everything needed by the hosted site is inside this folder.
+3. Choose your team and a project name, such as `qwerty-compiler`.
+4. Select **Deploy**, then open the resulting production URL.
+
+Drop creates a new project for each upload rather than updating an existing one. Use the Git workflow below for repeat updates. [3]
+
+### Option B: GitHub with automatic redeployment
+
+Create an empty repository in your own GitHub account. Extract the ZIP and put its **contents** at the repository root. `vercel.json` and `public/` should be at that root, not buried beneath another outer folder.
+
+For a new local repository, run these commands from the extracted project folder. Replace the repository URL before the last two commands; the all-caps placeholder is not a real repository.
+
+```powershell
+git init
+git status
+git add .
+git commit -m "Add Vercel-ready QWERTY compiler and complete user guide"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/qwerty-compiler.git
+git push -u origin main
+```
+
+For an existing repository, do not recreate its remote or change its branch blindly. Inspect it with `git status`, `git branch --show-current`, and `git remote -v`, then commit and push the intended changes to your existing branch.
+
+In Vercel, select **Add New > Project**, import the repository, and use these settings. Vercel supports configuring the framework, root, output directory, and build settings when importing a Git project. [4][5]
+
+| Setting | Value for this package |
+|---|---|
+| Framework Preset | **Other** |
+| Root Directory | Folder containing `vercel.json`; normally repository root `.` |
+| Build Command | Empty: no build step |
+| Output Directory | **public** |
+| Install Command | Empty: no install step |
+| Environment Variables | None |
+
+For this Git-based deployment, the supplied root configuration already sets the output directory and empty build/install commands. The Drop method instead publishes the selected public folder directly. Select **Deploy**. The public page loads the Python runtime in the visitor's browser; it does not start `START_QWERTY.bat`, Flask, or a long-running Python server on Vercel.
+
+When Git integration is configured, later pushes to the production branch trigger new production deployments. Other supported branches can receive preview deployments. [4]
+
+### Check the live site
+
+After deployment, run `sayit(addit(8, 2));` and confirm `10`. Then check the list example, Program input, a deliberate division-by-zero diagnostic, the Bytecode tab, the User guide link, and the `.md` download. Test in a second browser/device before sharing it widely.
+
+No live Vercel deployment has been performed by this package's authoring session. A successful local test is not a substitute for this live check.
+
+### Hosting cost and ownership
+
+Vercel's Hobby plan is for **personal, non-commercial use**, subject to usage limits. Do not assume it covers a company/commercial deployment. Review the current plan terms for your actual use. [6] The package does not need a paid execution API, but hosting traffic and third-party runtime delivery are still subject to their providers' availability and terms.
+
+### What is included
+
+```text
+qwerty-vercel/
+|-- vercel.json                 # Publishes public/; no Python server function.
+|-- public/
+|   |-- index.html              # Hosted editor.
+|   |-- app.js                  # Editor actions and results.
+|   |-- style.css
+|   |-- runtime.mjs             # Worker lifecycle, Stop, and time limits.
+|   |-- qwerty-worker.mjs        # Loads Pyodide and the Python bridge.
+|   |-- qwerty-engine.zip        # Generated Python package for the browser.
+|   |-- functions.json          # All 80 functions and printable examples.
+|   |-- help.html               # Readable function/user reference.
+|   |-- help.css
+|   `-- QWERTY_DEPLOYMENT_AND_USER_GUIDE.md
+|-- qwerty/                     # Original Python compiler, plus browser.py bridge.
+|-- web/                        # Original localhost editor, kept separate.
+|-- examples/
+|-- scripts/                    # Rebuild static engine/reference after edits.
+|-- tests/
+|-- README.md
+|-- QWERTY_DEPLOYMENT_AND_USER_GUIDE.md
+`-- TEST_REPORT.md
+```
+
+### Preview the hosted edition on your computer
+
+From the extracted project directory:
+
+```powershell
+py -3 -m http.server 8000 --bind 127.0.0.1 --directory public
+```
+
+Open `http://127.0.0.1:8000`. This is only a development file server. Do not double-click `public/index.html`: workers and asset fetches need an HTTP/HTTPS origin. Runtime loading still requires access to the Pyodide CDN. You do not need to run this command on Vercel.
+
+To use the original local Python-backed edition, run `py -3 -m qwerty web` or the original batch launcher. That is a separate mode and does not preview the hosted worker.
+
+## 6. Errors and troubleshooting
+
+| Symptom | Explanation and action |
+|---|---|
+| Program finished with no output | Use `sayit()` for returned values. Assignments and successful assertions do not print by themselves. |
+| SyntaxError near the next line | Check for a missing `;`, closing quote, parenthesis, or brace on the preceding line. |
+| Unknown name/function | Check spelling/case, declare variables with `keep`, and use actual QWERTY names rather than Python `print`, `len`, or `range`. |
+| Wrong argument count | Compare the call with the function signature in section 8. Optional arguments are positional. |
+| TypeError | Check the required types. Convert text explicitly and do not pass aye/nay as numbers. |
+| Division/remainder by zero | Check the divisor before calling `divit`, `floordivit`, or `modit`. |
+| InputError | Add enough lines in Program input before Run. The browser does not show interactive input popups. |
+| IndexError | Remember zero-based and negative indexing; check `sizeit()` before selecting an element. |
+| A collection seems unchanged | Save the returned new collection: `items = pushit(items, 3);`. |
+| Check passes but Run fails | Check does not execute dynamic values: division by zero, invalid input, and type mismatches can still fail at runtime. |
+| Loading Python fails | Check internet/CDN access, a current browser with WebAssembly and module workers, browser extensions, or organizational policies. A school/company network may block the runtime CDN. [1][2] |
+| Run takes too long | Fix the loop or reduce the input. The runtime has budgets; Stop terminates the worker and allows a fresh start. |
+| Root page is 404 on Vercel | Check Root Directory, the committed `public/index.html`, and Output Directory `public`. Do not use a nested outer folder by mistake. |
+| Function reference is unavailable | Confirm that `public/functions.json` was included. Regenerate the static bundle after compiler changes. |
+| Hosted site asks for a local Python server | The wrong frontend was deployed: deploy `public/`, not `web/` from the original edition. |
+| Users see stale assets | Refresh the page; confirm the latest deployment and branch. Regenerate and commit the static bundle after engine changes. |
+
+An error diagnostic can include an error kind/code, file name, line/column, a source excerpt with a caret, a hint, and a QWERTY function-call stack. Fix the first reported error and run again. Earlier output is preserved for ordinary language runtime errors, but not guaranteed after forced Stop, a worker timeout, or a browser/runtime crash.
+
+## 7. Limits, privacy, and supported scope
+
+### Default guardrails
+
+| Limit | Current default |
+|---|---|
+| Source | 100,000 characters |
+| Program input | 100,000 characters |
+| VM instruction steps | 200,000 |
+| VM execution time | 3 seconds, cooperatively checked |
+| Browser worker execution timer | 8 seconds, separate from startup |
+| Runtime startup timeout | 90 seconds |
+| Function call depth | 100 |
+| List/map item count | 10,000 |
+| Text value | 100,000 characters |
+| Console output | 200,000 characters |
+| Integer size | 4,096 bits |
+
+The wall-clock limits are application timers, not guaranteed real-time deadlines. Slower devices can reach them sooner for the same task. Browser background throttling can delay timer delivery. There is no hard per-program browser memory quota or independent security audit; do not treat these guards as proof of complete sandboxing.
+
+Each Run creates a fresh QWERTY program/context. The current draft remains in the editor, but variables and function execution state do not carry from one run to the next. Function-call and runtime state are not shared between visitors by this application.
+
+### Privacy and dependency notes
+
+As shipped, the hosted frontend does not send QWERTY source or Program input to a backend execution API. Vercel and the runtime CDN still receive normal asset requests, and the app depends on the integrity of those scripts and your browser. Do not paste passwords, API keys, or other secrets into a public playground. Browser extensions may also observe page content.
+
+The compiler's Python source is downloaded to the browser and is visible to visitors even when the GitHub repository is private. This is not a method of hiding proprietary compiler code. The Pyodide distribution is a third-party runtime loaded from a pinned version; it is not copied into this ZIP. An internet connection/CDN access is needed when its assets are not cached. This is not an offline PWA.
 
 ### Supported versus not supported
 
@@ -295,9 +439,9 @@ Included: custom functions, named calls, variables, branches, loops, recursion, 
 
 Not included: arbitrary Python execution, Python package imports from QWERTY, network or disk APIs in the QWERTY language, classes, user-defined exception handling, a step debugger, cloud accounts, shared workspaces, saved execution history, or native executable generation. Decimal values use floating-point arithmetic, not exact financial decimal arithmetic.
 
-Complete reference: all 80 built-in functions
+## 8. Complete reference: all 80 built-in functions
 
-Every function below comes from the project's actual `qwerty/builtins.py` registry. The printable examples are generated by the documentation generator using the Python engine; their console outputs are captured rather than inferred.
+Every function below comes from the project's actual `qwerty/builtins.py` registry. The printable examples are executed by the documentation generator with the Python engine; their console outputs are captured rather than guessed.
 
 **Signature notation is descriptive:** `places=0`, `default=void`, and similar expressions identify defaults, not supported keyword-call syntax. Call all arguments positionally. Returned text values are shown quoted in the reference; `sayit()` prints top-level text without those surrounding quotes.
 
@@ -1764,6 +1908,41 @@ assertit(aye, "failed");
 
 **User note:** Success deliberately prints nothing and returns void. A false condition stops execution with an AssertionError and the supplied message. Use sayit("Passed"); afterward for a visible success message.
 
+## 9. Verification and maintenance
+
+Read `TEST_REPORT.md` for the exact checks executed in this package and their limitations. The original project's earlier report is preserved as `TEST_REPORT_LOCAL_ORIGINAL.md`; it is not a verification report for this new deployment.
+
+After changing any Python engine code, built-in metadata, reference notes, or guide templates, regenerate the committed hosted assets:
+
+```powershell
+py -3 scripts/build_static.py
+py -3 -m unittest discover -s tests -v
+```
+
+The build script uses Python's standard library only. It regenerates the browser compiler archive, function catalog, Markdown guide, HTML reference, and reference-example data. Vercel deliberately skips a build because these files are already committed. Forgetting to regenerate them would deploy the previous embedded engine.
+
+Before publishing an update, preview `public/` over HTTP, run the live smoke checks in section 5, and then commit the updated `public/` files along with your source. Keep runtime versions pinned; changing the Pyodide URL requires new browser testing. Do not silently replace the browser architecture with an unprotected public Python execution API.
+
+The original CLI is still available:
+
+```powershell
+py -3 -m qwerty run examples/demo.qw
+py -3 -m qwerty check examples/demo.qw
+py -3 -m qwerty compile examples/demo.qw -o demo.qbc
+py -3 -m qwerty run demo.qbc
+```
+
+No general claim of production security, exhaustive language correctness, or cross-browser compatibility is made. See the package's current test report before describing it as tested on a particular platform.
+
+## 10. Official deployment references
+
+Provider guidance was checked on 18 September 2026. Dashboard wording, service limits, and versions can change. These references describe the external platforms; the language behavior is defined by this project's source and tests.
+
+[1] Pyodide usage and deployment: `https://pyodide.org/en/stable/usage/index.html` and `https://pyodide.org/en/stable/usage/downloading-and-deploying.html`.
+
+[2] Pyodide module workers and custom Python packages: `https://pyodide.org/en/stable/usage/webworker.html` and `https://pyodide.org/en/stable/usage/loading-custom-python-code.html`.
+
+[3] Vercel Drop workflow and limitations: `https://vercel.com/docs/drop`.
 
 [4] Vercel Git deployments: `https://vercel.com/docs/git`.
 
